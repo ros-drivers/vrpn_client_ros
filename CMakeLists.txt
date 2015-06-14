@@ -3,7 +3,7 @@ project(vrpn_ros)
 
 list(APPEND	CMAKE_MODULE_PATH	${vrpn_ros_SOURCE_DIR}/cmake)
 
-find_package(catkin REQUIRED roscpp)
+find_package(catkin REQUIRED roscpp tf2_ros)
 
 find_package(VRPN REQUIRED)
 
