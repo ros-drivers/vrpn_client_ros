@@ -3,36 +3,51 @@ project(vrpn_ros)
 
 list(APPEND	CMAKE_MODULE_PATH	${vrpn_ros_SOURCE_DIR}/cmake)
 
-find_package(catkin REQUIRED roscpp tf2_ros)
-
+find_package(catkin REQUIRED geometry_msgs roscpp roslaunch roslint tf2_ros)
 find_package(VRPN REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES vrpn_ros
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  LIBRARIES vrpn_ros
+  CATKIN_DEPENDS geometry_msgs tf2_ros
+  DEPENDS VRPN
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${VRPN_INCLUDE_DIR})
 
-## Declare a cpp library
-# add_library(vrpn_ros
-#   src/${PROJECT_NAME}/vrpn_ros.cpp
-# )
+add_library(vrpn_ros
+  src/vrpn_ros.cpp
+)
+target_link_libraries(vrpn_ros
+  ${catkin_LIBRARIES}
+  ${VRPN_LIBRARIES}
+)
 
-## Declare a cpp executable
- add_executable(vrpn_ros_node src/vrpn_ros.cpp)
+add_executable(vrpn_tracker_node
+  src/vrpn_tracker_node.cpp)
+add_dependencies(vrpn_tracker_node vrpn_ros)
+target_link_libraries(vrpn_tracker_node
+  vrpn_ros
+  ${catkin_LIBRARIES}
+)
 
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(vrpn_ros_node vrpn_ros_generate_messages_cpp)
+add_executable(vrpn_client_node
+  src/vrpn_client_node.cpp)
+add_dependencies(vrpn_client_node vrpn_ros)
+target_link_libraries(vrpn_client_node
+  vrpn_ros
+  ${catkin_LIBRARIES}
+)
 
-## Specify libraries to link a library or executable target against
- target_link_libraries(vrpn_ros_node
-   ${catkin_LIBRARIES}
-   ${VRPN_LIBRARIES}
- )
+roslaunch_add_file_check(launch)
+
+file(GLOB_RECURSE SOURCE_FILES src *.cpp)
+file(GLOB_RECURSE HEADER_FILES include *.h)
+
+roslint_cpp(
+  ${SOURCE_FILES}
+  ${HEADER_FILES}
+  )
 
 #############
 ## Install ##

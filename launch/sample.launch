@@ -1,0 +1,21 @@
+<launch>
+
+  <node pkg="vrpn_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+    <rosparam>
+      server: 127.0.0.1
+
+      update_frequency: 100.0
+      frame_id: world
+
+      use_server_time: true
+      broadcast_tf: true
+
+      # Must either specify refresh frequency > 0.0, or a list of trackers to create
+      refresh_tracker_frequency: 1.0
+      #trackers:
+      #- one
+      #- two
+    </rosparam>
+  </node>
+
+</launch>
