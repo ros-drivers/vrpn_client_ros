@@ -109,7 +109,7 @@ namespace vrpn_ros
     void mainloop();
 
     /**
-     * Examine vrpn_Connection and create or remove tracker objects as necessary
+     * Examine vrpn_Connection and create or remove trackers as necessary.
      */
     void updateTrackers();
 

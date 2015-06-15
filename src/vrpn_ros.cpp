@@ -283,17 +283,20 @@ namespace vrpn_ros
   {
     std::vector<std::string> tracker_names, sender_names, to_create, to_remove;
 
+    // Get list of senders from VRPN connection
     int i = 0;
     while (connection_->sender_name(i) != NULL)
     {
       sender_names.push_back(std::string(connection_->sender_name(i++)));
     }
 
+    // Store list of trackers currently running
     for (std::map<std::string, VrpnTrackerRos>::iterator it = trackers_.begin(); it != trackers_.end(); ++it)
     {
       tracker_names.push_back(it->first);
     }
 
+    // Find which trackers need to be created or removed based on sender and tracker lists
     std::set_difference(sender_names.begin(), sender_names.end(), tracker_names.begin(), tracker_names.end(),
                         std::inserter(to_create, to_create.begin()));
     std::set_difference(tracker_names.begin(), tracker_names.end(), sender_names.begin(), sender_names.end(),
