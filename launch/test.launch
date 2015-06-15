@@ -2,6 +2,17 @@
 
   <node pkg="vrpn_ros" type="vrpn_ros_node" name="vrpn_ros_node" output="screen">
     <!--<rosparam command="load" file="$(find husky_control)/config/twist_mux.yaml" />-->
+    <rosparam>
+      update_frequency: 100.0
+      refresh_tracker_frequency: 0.0
+      frame_id: world
+      use_server_time: true
+      broadcast_tf: true
+
+      trackers:
+      - one
+      - two
+    </rosparam>
   </node>
 
 
