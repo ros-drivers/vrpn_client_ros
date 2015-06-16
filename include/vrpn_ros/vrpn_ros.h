@@ -44,29 +44,32 @@
 #include <vrpn_Connection.h>
 #include <map>
 #include <string>
-
+#include <boost/unordered_map.hpp>
 namespace vrpn_ros
 {
 
   typedef boost::shared_ptr<vrpn_Connection> ConnectionPtr;
   typedef boost::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
+  typedef boost::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
 
   class VrpnTrackerRos
   {
   public:
+
+    typedef boost::shared_ptr<VrpnTrackerRos> Ptr;
     /**
-     * Create and initialize VrpnTrackerRos using an existing underlying VRPN connection object.
+     * Create and initialize VrpnTrackerRos using an existing underlying VRPN connection object. The underlying
+     * connection object is responsible for calling the tracker's mainloop.
      */
     VrpnTrackerRos(std::string tracker_name, ConnectionPtr connection, ros::NodeHandle nh);
 
     /**
-     * Create and initialize VrpnTrackerRos, creating a new connection to tracker_name@host.
+     * Create and initialize VrpnTrackerRos, creating a new connection to tracker_name@host. This constructor will
+     * register timer callbacks on nh to call mainloop.
      */
     VrpnTrackerRos(std::string tracker_name, std::string host, ros::NodeHandle nh);
 
     ~VrpnTrackerRos();
-
-    void init(std::string tracker_name, ros::NodeHandle nh, bool create_mainloop_timer);
 
     /**
      * Call mainloop of underlying vrpn_Tracker_Remote
@@ -86,6 +89,8 @@ namespace vrpn_ros
     geometry_msgs::AccelStamped accel_msg_;
     geometry_msgs::TransformStamped transform_stamped_;
 
+    void init(std::string tracker_name, ros::NodeHandle nh, bool create_mainloop_timer);
+
     static void VRPN_CALLBACK handle_pose(void *userData, const vrpn_TRACKERCB tracker_pose);
 
     static void VRPN_CALLBACK handle_twist(void *userData, const vrpn_TRACKERVELCB tracker_twist);
@@ -96,6 +101,10 @@ namespace vrpn_ros
   class VrpnClientRos
   {
   public:
+
+    typedef boost::shared_ptr<VrpnClientRos> Ptr;
+    typedef boost::unordered_map<std::string, VrpnTrackerRos::Ptr> TrackerMap;
+
     /**
      * Create and initialize VrpnClientRos object in the private_nh namespace.
      */
@@ -109,7 +118,7 @@ namespace vrpn_ros
     void mainloop();
 
     /**
-     * Examine vrpn_Connection and create or remove trackers as necessary.
+     * Examine vrpn_Connection's senders and create new trackers as necessary.
      */
     void updateTrackers();
 
@@ -126,7 +135,7 @@ namespace vrpn_ros
     /**
      * Map of registered trackers, accessible by name
      */
-    std::map<std::string, VrpnTrackerRos> trackers_;
+    TrackerMap trackers_;
 
     ros::Timer refresh_tracker_timer_, mainloop_timer;
   };

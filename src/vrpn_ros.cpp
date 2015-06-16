@@ -36,6 +36,13 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 #include <vector>
+#include <boost/unordered_set.hpp>
+#include <boost/assign/list_of.hpp>
+
+namespace
+{
+  boost::unordered_set<std::string> name_blacklist_ = boost::assign::list_of("VRPN Control");
+}
 
 namespace vrpn_ros
 {
@@ -58,6 +65,18 @@ namespace vrpn_ros
   {
     ROS_INFO_STREAM("Creating tracker " << tracker_name);
 
+    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_pose);
+    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_twist);
+    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_accel);
+    tracker_remote_->shutup = true;
+
+    std::string error;
+    if (!ros::names::validate(tracker_name, error))
+    {
+      ROS_ERROR_STREAM("Invalid tracker name " << tracker_name << ", not creating topics : " << error);
+      return;
+    }
+
     output_nh_ = ros::NodeHandle(nh, tracker_name);
 
     std::string frame_id;
@@ -67,10 +86,6 @@ namespace vrpn_ros
 
     pose_msg_.header.frame_id = twist_msg_.header.frame_id = accel_msg_.header.frame_id = transform_stamped_.header.frame_id = frame_id;
     transform_stamped_.child_frame_id = tracker_name;
-
-    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_pose);
-    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_twist);
-    tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_accel);
 
     if (create_mainloop_timer)
     {
@@ -83,6 +98,7 @@ namespace vrpn_ros
 
   VrpnTrackerRos::~VrpnTrackerRos()
   {
+    ROS_INFO_STREAM("Destroying tracker " << transform_stamped_.child_frame_id);
     tracker_remote_->unregister_change_handler(this, &VrpnTrackerRos::handle_pose);
     tracker_remote_->unregister_change_handler(this, &VrpnTrackerRos::handle_twist);
     tracker_remote_->unregister_change_handler(this, &VrpnTrackerRos::handle_accel);
@@ -249,7 +265,7 @@ namespace vrpn_ros
       for (std::vector<std::string>::iterator it = param_tracker_names_.begin();
            it != param_tracker_names_.end(); ++it)
       {
-        trackers_.insert(std::make_pair(*it, VrpnTrackerRos(*it, connection_, output_nh_)));
+        trackers_.insert(std::make_pair(*it, boost::make_shared<VrpnTrackerRos>(*it, connection_, output_nh_)));
       }
     }
   }
@@ -273,43 +289,28 @@ namespace vrpn_ros
   void VrpnClientRos::mainloop()
   {
     connection_->mainloop();
-    for (std::map<std::string, VrpnTrackerRos>::iterator it = trackers_.begin(); it != trackers_.end(); ++it)
+    if (!connection_->doing_okay())
     {
-      it->second.mainloop();
+      ROS_WARN("VRPN connection is not 'doing okay'. Thanks for the helpful information VRPN!");
+    }
+    for (TrackerMap::iterator it = trackers_.begin(); it != trackers_.end(); ++it)
+    {
+      it->second->mainloop();
     }
   }
 
   void VrpnClientRos::updateTrackers()
   {
-    std::vector<std::string> tracker_names, sender_names, to_create, to_remove;
-
-    // Get list of senders from VRPN connection
     int i = 0;
     while (connection_->sender_name(i) != NULL)
     {
-      sender_names.push_back(std::string(connection_->sender_name(i++)));
-    }
-
-    // Store list of trackers currently running
-    for (std::map<std::string, VrpnTrackerRos>::iterator it = trackers_.begin(); it != trackers_.end(); ++it)
-    {
-      tracker_names.push_back(it->first);
-    }
-
-    // Find which trackers need to be created or removed based on sender and tracker lists
-    std::set_difference(sender_names.begin(), sender_names.end(), tracker_names.begin(), tracker_names.end(),
-                        std::inserter(to_create, to_create.begin()));
-    std::set_difference(tracker_names.begin(), tracker_names.end(), sender_names.begin(), sender_names.end(),
-                        std::inserter(to_remove, to_remove.begin()));
-
-    for (std::vector<std::string>::iterator it = to_create.begin(); it != to_create.end(); ++it)
-    {
-      trackers_.insert(std::make_pair(*it, VrpnTrackerRos(*it, connection_, output_nh_)));
-    }
-
-    for (std::vector<std::string>::iterator it = to_remove.begin(); it != to_remove.end(); ++it)
-    {
-      trackers_.erase(*it);
+      if (trackers_.count(connection_->sender_name(i)) == 0 && name_blacklist_.count(connection_->sender_name(i)) == 0)
+      {
+        ROS_DEBUG_STREAM("Creating new tracker for sender " << connection_->sender_name(i));
+        trackers_.insert(std::make_pair(connection_->sender_name(i),
+                                        boost::make_shared<VrpnTrackerRos>(connection_->sender_name(i), connection_,
+                                                                           output_nh_)));
+      }
     }
   }
 }  // namespace vrpn_ros
