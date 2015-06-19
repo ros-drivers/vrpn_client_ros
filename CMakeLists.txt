@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vrpn_ros)
 
-list(APPEND	CMAKE_MODULE_PATH	${vrpn_ros_SOURCE_DIR}/cmake)
-
-find_package(catkin REQUIRED geometry_msgs roscpp roslaunch roslint tf2_ros)
+find_package(catkin REQUIRED COMPONENTS cmake_modules geometry_msgs roscpp roslaunch roslint tf2_ros)
 find_package(VRPN REQUIRED)
 
 catkin_package(
@@ -13,7 +11,11 @@ catkin_package(
   DEPENDS VRPN
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${VRPN_INCLUDE_DIR})
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${VRPN_INCLUDE_DIR}
+)
 
 add_library(vrpn_ros
   src/vrpn_ros.cpp

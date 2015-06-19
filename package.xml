@@ -10,15 +10,18 @@
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>cmake_modules</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>roslaunch</build_depend>
   <build_depend>roslint</build_depend>
   <build_depend>tf2_ros</build_depend>
+  <build_depend>vrpn</build_depend>
 
   <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>tf2_ros</run_depend>
+  <run_depend>vrpn</run_depend>
 
   <export>
   </export>
