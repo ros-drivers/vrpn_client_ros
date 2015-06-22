@@ -29,10 +29,10 @@
 *
 */
 
-#ifndef VRPN_ROS_VRPN_ROS_H
-#define VRPN_ROS_VRPN_ROS_H
+#ifndef VRPN_CLIENT_ROS_VRPN_CLIENT_ROS_H
+#define VRPN_CLIENT_ROS_VRPN_CLIENT_ROS_H
 
-#include "vrpn_ros/vrpn_ros.h"
+#include "vrpn_client_ros/vrpn_client_ros.h"
 
 #include "ros/ros.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -45,7 +45,7 @@
 #include <map>
 #include <string>
 #include <boost/unordered_map.hpp>
-namespace vrpn_ros
+namespace vrpn_client_ros
 {
 
   typedef boost::shared_ptr<vrpn_Connection> ConnectionPtr;
@@ -139,6 +139,6 @@ namespace vrpn_ros
 
     ros::Timer refresh_tracker_timer_, mainloop_timer;
   };
-}  // namespace vrpn_ros
+}  // namespace vrpn_client_ros
 
-#endif  // VRPN_ROS_VRPN_ROS_H
+#endif  // VRPN_CLIENT_ROS_VRPN_CLIENT_ROS_H

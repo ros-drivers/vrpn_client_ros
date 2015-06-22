@@ -1,8 +1,8 @@
 <launch>
 
-  <node pkg="vrpn_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+  <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
     <rosparam>
-      server: 10.27.15.72
+      server: 10.27.16.165
 
       update_frequency: 100.0
       frame_id: world

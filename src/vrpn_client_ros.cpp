@@ -29,7 +29,7 @@
 *
 */
 
-#include "vrpn_ros/vrpn_ros.h"
+#include "vrpn_client_ros/vrpn_client_ros.h"
 
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Matrix3x3.h"
@@ -44,7 +44,7 @@ namespace
   boost::unordered_set<std::string> name_blacklist_ = boost::assign::list_of("VRPN Control");
 }
 
-namespace vrpn_ros
+namespace vrpn_client_ros
 {
 
   VrpnTrackerRos::VrpnTrackerRos(std::string tracker_name, ConnectionPtr connection, ros::NodeHandle nh)
@@ -63,7 +63,7 @@ namespace vrpn_ros
 
   void VrpnTrackerRos::init(std::string tracker_name, ros::NodeHandle nh, bool create_mainloop_timer)
   {
-    ROS_INFO_STREAM("Creating tracker " << tracker_name);
+    ROS_INFO_STREAM("Creating new tracker " << tracker_name);
 
     tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_pose);
     tracker_remote_->register_change_handler(this, &VrpnTrackerRos::handle_twist);
@@ -291,7 +291,7 @@ namespace vrpn_ros
     connection_->mainloop();
     if (!connection_->doing_okay())
     {
-      ROS_WARN("VRPN connection is not 'doing okay'. Thanks for the helpful information VRPN!");
+      ROS_WARN("VRPN connection is not 'doing okay'");
     }
     for (TrackerMap::iterator it = trackers_.begin(); it != trackers_.end(); ++it)
     {
@@ -306,11 +306,12 @@ namespace vrpn_ros
     {
       if (trackers_.count(connection_->sender_name(i)) == 0 && name_blacklist_.count(connection_->sender_name(i)) == 0)
       {
-        ROS_DEBUG_STREAM("Creating new tracker for sender " << connection_->sender_name(i));
+        ROS_INFO_STREAM("Found new sender: " << connection_->sender_name(i));
         trackers_.insert(std::make_pair(connection_->sender_name(i),
                                         boost::make_shared<VrpnTrackerRos>(connection_->sender_name(i), connection_,
                                                                            output_nh_)));
       }
+      i++;
     }
   }
-}  // namespace vrpn_ros
+}  // namespace vrpn_client_ros
