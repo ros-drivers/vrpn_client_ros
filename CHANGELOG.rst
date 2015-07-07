@@ -2,8 +2,8 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2015-07-07)
+------------------
 * Fix tf header timestamps
 * Update sample.launch
 * Contributors: Paul Bovbel
