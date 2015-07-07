@@ -144,6 +144,16 @@ namespace vrpn_client_ros
     if (tracker->broadcast_tf_)
     {
       static tf2_ros::TransformBroadcaster tf_broadcaster;
+
+      if (tracker->use_server_time_)
+      {
+        tracker->transform_stamped_.header.stamp.sec = tracker_pose.msg_time.tv_sec;
+        tracker->transform_stamped_.header.stamp.nsec = tracker_pose.msg_time.tv_usec * 1000;
+      }
+      else
+      {
+        tracker->transform_stamped_.header.stamp = ros::Time::now();
+      }
       tracker->transform_stamped_.transform.translation.x = tracker_pose.pos[0];
       tracker->transform_stamped_.transform.translation.y = tracker_pose.pos[1];
       tracker->transform_stamped_.transform.translation.z = tracker_pose.pos[2];
@@ -237,14 +247,11 @@ namespace vrpn_client_ros
   {
     output_nh_ = private_nh;
 
-    private_nh.param<std::string>("frame_id", frame_id_, "world");
-    private_nh.param<bool>("use_server_time", use_server_time_, false);
-    private_nh.param<bool>("broadcast_tf", broadcast_tf_, false);
-
     host_ = getHostStringFromParams(private_nh);
 
     ROS_INFO_STREAM("Connecting to VRPN server at " << host_);
     connection_ = boost::shared_ptr<vrpn_Connection>(vrpn_get_connection_by_name(host_.c_str()));
+    ROS_INFO("Connection established");
 
     double update_frequency;
     private_nh.param<double>("update_frequency", update_frequency, 100.0);

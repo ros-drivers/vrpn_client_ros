@@ -123,8 +123,7 @@ namespace vrpn_client_ros
     void updateTrackers();
 
   private:
-    std::string host_, frame_id_;
-    bool use_server_time_, broadcast_tf_;
+    std::string host_;
     ros::NodeHandle output_nh_;
 
     /**
