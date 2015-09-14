@@ -2,7 +2,7 @@
 <package>
   <name>vrpn_client_ros</name>
   <version>0.0.2</version>
-  <description>ROS client nodes for the <a href="https://github.com/vrpn/vrpn/wiki">VRPN</a> library, compatible with VICON, OptiTrack, and other <a href="http://www.cs.unc.edu/Research/vrpn/">hardware interfaces</a>.</description>
+  <description>ROS client nodes for the <a href="https://github.com/vrpn/vrpn/wiki">VRPN</a> library, compatible with VICON, OptiTrack, and other <a href="https://github.com/vrpn/vrpn/wiki/Supported-hardware-devices">hardware interfaces</a>.</description>
 
   <author email="pbovbel@clearpathrobotics.com">Paul Bovbel</author>
   <maintainer email="pbovbel@clearpathrobotics.com">Paul Bovbel</maintainer>
