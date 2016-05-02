@@ -45,11 +45,11 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+
 namespace vrpn_client_ros
 {
 
   typedef std::shared_ptr<vrpn_Connection> ConnectionPtr;
-  typedef std::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
   typedef std::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
 
   class VrpnTrackerRos
@@ -78,7 +78,7 @@ namespace vrpn_client_ros
 
   private:
     TrackerRemotePtr tracker_remote_;
-    ros::Publisher pose_pub, twist_pub, accel_pub;
+    std::vector<ros::Publisher> pose_pubs_, twist_pubs_, accel_pubs_;
     ros::NodeHandle output_nh_;
     bool use_server_time_, broadcast_tf_, process_sensor_id_;
     std::string tracker_name;
