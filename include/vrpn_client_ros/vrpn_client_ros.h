@@ -44,19 +44,19 @@
 #include <vrpn_Connection.h>
 #include <map>
 #include <string>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 namespace vrpn_client_ros
 {
 
-  typedef boost::shared_ptr<vrpn_Connection> ConnectionPtr;
-  typedef boost::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
-  typedef boost::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
+  typedef std::shared_ptr<vrpn_Connection> ConnectionPtr;
+  typedef std::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
+  typedef std::shared_ptr<vrpn_Tracker_Remote> TrackerRemotePtr;
 
   class VrpnTrackerRos
   {
   public:
 
-    typedef boost::shared_ptr<VrpnTrackerRos> Ptr;
+    typedef std::shared_ptr<VrpnTrackerRos> Ptr;
     /**
      * Create and initialize VrpnTrackerRos using an existing underlying VRPN connection object. The underlying
      * connection object is responsible for calling the tracker's mainloop.
@@ -80,8 +80,7 @@ namespace vrpn_client_ros
     TrackerRemotePtr tracker_remote_;
     ros::Publisher pose_pub, twist_pub, accel_pub;
     ros::NodeHandle output_nh_;
-    bool use_server_time_, broadcast_tf_;
-    bool append_sensor_id_;
+    bool use_server_time_, broadcast_tf_, process_sensor_id_;
     std::string tracker_name;
 
     ros::Timer mainloop_timer;
@@ -104,8 +103,8 @@ namespace vrpn_client_ros
   {
   public:
 
-    typedef boost::shared_ptr<VrpnClientRos> Ptr;
-    typedef boost::unordered_map<std::string, VrpnTrackerRos::Ptr> TrackerMap;
+    typedef std::shared_ptr<VrpnClientRos> Ptr;
+    typedef std::unordered_map<std::string, VrpnTrackerRos::Ptr> TrackerMap;
 
     /**
      * Create and initialize VrpnClientRos object in the private_nh namespace.

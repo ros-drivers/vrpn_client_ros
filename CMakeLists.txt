@@ -11,6 +11,9 @@ catkin_package(
   DEPENDS VRPN
 )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wno-unknown-pragmas")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}

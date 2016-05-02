@@ -78,17 +78,16 @@ namespace vrpn_client_ros
     }
 
     this->tracker_name = tracker_name;
-    
+
     output_nh_ = ros::NodeHandle(nh, tracker_name);
 
     std::string frame_id;
     nh.param<std::string>("frame_id", frame_id, "world");
     nh.param<bool>("use_server_time", use_server_time_, false);
     nh.param<bool>("broadcast_tf", broadcast_tf_, false);
-    nh.param<bool>("append_sensor_id", append_sensor_id_, false);
+    nh.param<bool>("process_sensor_id", process_sensor_id_, false);
 
     pose_msg_.header.frame_id = twist_msg_.header.frame_id = accel_msg_.header.frame_id = transform_stamped_.header.frame_id = frame_id;
-    transform_stamped_.child_frame_id = tracker_name;
 
     if (create_mainloop_timer)
     {
@@ -158,17 +157,15 @@ namespace vrpn_client_ros
         tracker->transform_stamped_.header.stamp = ros::Time::now();
       }
 
-      if (tracker->append_sensor_id_)
+      if (tracker->process_sensor_id_)
       {
-        std::stringstream ss;
-        ss << tracker->tracker_name << "_" << tracker_pose.sensor;
-        tracker->transform_stamped_.child_frame_id = ss.str().c_str();
+        tracker->transform_stamped_.child_frame_id = tracker->tracker_name + "/" + std::to_string(tracker_pose.sensor);
       }
       else
       {
         tracker->transform_stamped_.child_frame_id = tracker->tracker_name;
       }
-      
+
       tracker->transform_stamped_.transform.translation.x = tracker_pose.pos[0];
       tracker->transform_stamped_.transform.translation.y = tracker_pose.pos[1];
       tracker->transform_stamped_.transform.translation.z = tracker_pose.pos[2];
