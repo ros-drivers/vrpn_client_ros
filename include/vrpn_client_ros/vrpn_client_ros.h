@@ -81,6 +81,8 @@ namespace vrpn_client_ros
     ros::Publisher pose_pub, twist_pub, accel_pub;
     ros::NodeHandle output_nh_;
     bool use_server_time_, broadcast_tf_;
+    bool append_sensor_id_;
+    std::string tracker_name;
 
     ros::Timer mainloop_timer;
 
