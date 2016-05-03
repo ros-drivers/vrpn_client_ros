@@ -116,12 +116,14 @@ namespace vrpn_client_ros
 
     ros::Publisher *pose_pub;
     std::size_t sensor_index(0);
-    std::string topic = "pose";
+    ros::NodeHandle nh = tracker->output_nh_;
+    
     if (tracker->process_sensor_id_)
     {
       sensor_index = static_cast<std::size_t>(tracker_pose.sensor);
-      topic = std::to_string(tracker_pose.sensor) + "/" + topic;
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_pose.sensor));
     }
+    
     if (tracker->pose_pubs_.size() <= sensor_index)
     {
       tracker->pose_pubs_.resize(sensor_index + 1);
@@ -130,7 +132,7 @@ namespace vrpn_client_ros
 
     if (pose_pub->getTopic().empty())
     {
-      *pose_pub = tracker->output_nh_.advertise<geometry_msgs::PoseStamped>(topic, 1);
+      *pose_pub = nh.advertise<geometry_msgs::PoseStamped>("pose", 1);
     }
 
     if (pose_pub->getNumSubscribers() > 0)
@@ -199,12 +201,14 @@ namespace vrpn_client_ros
 
     ros::Publisher *twist_pub;
     std::size_t sensor_index(0);
-    std::string topic = "twist";
+    ros::NodeHandle nh = tracker->output_nh_;
+    
     if (tracker->process_sensor_id_)
     {
       sensor_index = static_cast<std::size_t>(tracker_twist.sensor);
-      topic = std::to_string(tracker_twist.sensor) + "/" + topic;
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_twist.sensor));
     }
+    
     if (tracker->twist_pubs_.size() <= sensor_index)
     {
       tracker->twist_pubs_.resize(sensor_index + 1);
@@ -213,7 +217,7 @@ namespace vrpn_client_ros
 
     if (twist_pub->getTopic().empty())
     {
-      *twist_pub = tracker->output_nh_.advertise<geometry_msgs::TwistStamped>(topic, 1);
+      *twist_pub = nh.advertise<geometry_msgs::TwistStamped>("twist", 1);
     }
 
     if (twist_pub->getNumSubscribers() > 0)
@@ -252,12 +256,14 @@ namespace vrpn_client_ros
 
     ros::Publisher *accel_pub;
     std::size_t sensor_index(0);
-    std::string topic = "accel";
+    ros::NodeHandle nh = tracker->output_nh_;
+
     if (tracker->process_sensor_id_)
     {
       sensor_index = static_cast<std::size_t>(tracker_accel.sensor);
-      topic = std::to_string(tracker_accel.sensor) + "/" + topic;
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_accel.sensor));
     }
+    
     if (tracker->accel_pubs_.size() <= sensor_index)
     {
       tracker->accel_pubs_.resize(sensor_index + 1);
@@ -266,7 +272,7 @@ namespace vrpn_client_ros
 
     if (accel_pub->getTopic().empty())
     {
-      *accel_pub = tracker->output_nh_.advertise<geometry_msgs::TwistStamped>(topic, 1);
+      *accel_pub = nh.advertise<geometry_msgs::TwistStamped>("accel", 1);
     }
 
     if (accel_pub->getNumSubscribers() > 0)
