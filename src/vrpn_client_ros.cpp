@@ -36,12 +36,11 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 #include <vector>
-#include <boost/unordered_set.hpp>
-#include <boost/assign/list_of.hpp>
+#include <unordered_set>
 
 namespace
 {
-  boost::unordered_set<std::string> name_blacklist_ = boost::assign::list_of("VRPN Control");
+  std::unordered_set<std::string> name_blacklist_({"VRPN Control"});
 }
 
 namespace vrpn_client_ros
@@ -49,7 +48,7 @@ namespace vrpn_client_ros
 
   VrpnTrackerRos::VrpnTrackerRos(std::string tracker_name, ConnectionPtr connection, ros::NodeHandle nh)
   {
-    tracker_remote_ = boost::make_shared<vrpn_Tracker_Remote>(tracker_name.c_str(), connection.get());
+    tracker_remote_ = std::make_shared<vrpn_Tracker_Remote>(tracker_name.c_str(), connection.get());
     init(tracker_name, nh, false);
   }
 
@@ -57,7 +56,7 @@ namespace vrpn_client_ros
   {
     std::string tracker_address;
     tracker_address = tracker_name + "@" + host;
-    tracker_remote_ = boost::make_shared<vrpn_Tracker_Remote>(tracker_address.c_str());
+    tracker_remote_ = std::make_shared<vrpn_Tracker_Remote>(tracker_address.c_str());
     init(tracker_name, nh, true);
   }
 
@@ -77,15 +76,17 @@ namespace vrpn_client_ros
       return;
     }
 
+    this->tracker_name = tracker_name;
+
     output_nh_ = ros::NodeHandle(nh, tracker_name);
 
     std::string frame_id;
     nh.param<std::string>("frame_id", frame_id, "world");
     nh.param<bool>("use_server_time", use_server_time_, false);
     nh.param<bool>("broadcast_tf", broadcast_tf_, false);
+    nh.param<bool>("process_sensor_id", process_sensor_id_, false);
 
     pose_msg_.header.frame_id = twist_msg_.header.frame_id = accel_msg_.header.frame_id = transform_stamped_.header.frame_id = frame_id;
-    transform_stamped_.child_frame_id = tracker_name;
 
     if (create_mainloop_timer)
     {
@@ -112,12 +113,29 @@ namespace vrpn_client_ros
   void VRPN_CALLBACK VrpnTrackerRos::handle_pose(void *userData, const vrpn_TRACKERCB tracker_pose)
   {
     VrpnTrackerRos *tracker = static_cast<VrpnTrackerRos *>(userData);
-    if (tracker->pose_pub.getTopic().empty())
+
+    ros::Publisher *pose_pub;
+    std::size_t sensor_index(0);
+    ros::NodeHandle nh = tracker->output_nh_;
+    
+    if (tracker->process_sensor_id_)
     {
-      tracker->pose_pub = tracker->output_nh_.advertise<geometry_msgs::PoseStamped>("pose", 1);
+      sensor_index = static_cast<std::size_t>(tracker_pose.sensor);
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_pose.sensor));
+    }
+    
+    if (tracker->pose_pubs_.size() <= sensor_index)
+    {
+      tracker->pose_pubs_.resize(sensor_index + 1);
+    }
+    pose_pub = &(tracker->pose_pubs_[sensor_index]);
+
+    if (pose_pub->getTopic().empty())
+    {
+      *pose_pub = nh.advertise<geometry_msgs::PoseStamped>("pose", 1);
     }
 
-    if (tracker->pose_pub.getNumSubscribers() > 0)
+    if (pose_pub->getNumSubscribers() > 0)
     {
       if (tracker->use_server_time_)
       {
@@ -138,7 +156,7 @@ namespace vrpn_client_ros
       tracker->pose_msg_.pose.orientation.z = tracker_pose.quat[2];
       tracker->pose_msg_.pose.orientation.w = tracker_pose.quat[3];
 
-      tracker->pose_pub.publish(tracker->pose_msg_);
+      pose_pub->publish(tracker->pose_msg_);
     }
 
     if (tracker->broadcast_tf_)
@@ -154,6 +172,16 @@ namespace vrpn_client_ros
       {
         tracker->transform_stamped_.header.stamp = ros::Time::now();
       }
+
+      if (tracker->process_sensor_id_)
+      {
+        tracker->transform_stamped_.child_frame_id = tracker->tracker_name + "/" + std::to_string(tracker_pose.sensor);
+      }
+      else
+      {
+        tracker->transform_stamped_.child_frame_id = tracker->tracker_name;
+      }
+
       tracker->transform_stamped_.transform.translation.x = tracker_pose.pos[0];
       tracker->transform_stamped_.transform.translation.y = tracker_pose.pos[1];
       tracker->transform_stamped_.transform.translation.z = tracker_pose.pos[2];
@@ -170,12 +198,29 @@ namespace vrpn_client_ros
   void VRPN_CALLBACK VrpnTrackerRos::handle_twist(void *userData, const vrpn_TRACKERVELCB tracker_twist)
   {
     VrpnTrackerRos *tracker = static_cast<VrpnTrackerRos *>(userData);
-    if (tracker->twist_pub.getTopic().empty())
+
+    ros::Publisher *twist_pub;
+    std::size_t sensor_index(0);
+    ros::NodeHandle nh = tracker->output_nh_;
+    
+    if (tracker->process_sensor_id_)
     {
-      tracker->twist_pub = tracker->output_nh_.advertise<geometry_msgs::TwistStamped>("twist", 1);
+      sensor_index = static_cast<std::size_t>(tracker_twist.sensor);
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_twist.sensor));
+    }
+    
+    if (tracker->twist_pubs_.size() <= sensor_index)
+    {
+      tracker->twist_pubs_.resize(sensor_index + 1);
+    }
+    twist_pub = &(tracker->twist_pubs_[sensor_index]);
+
+    if (twist_pub->getTopic().empty())
+    {
+      *twist_pub = nh.advertise<geometry_msgs::TwistStamped>("twist", 1);
     }
 
-    if (tracker->twist_pub.getNumSubscribers() > 0)
+    if (twist_pub->getNumSubscribers() > 0)
     {
       if (tracker->use_server_time_)
       {
@@ -201,19 +246,36 @@ namespace vrpn_client_ros
       tracker->twist_msg_.twist.angular.y = pitch;
       tracker->twist_msg_.twist.angular.z = yaw;
 
-      tracker->twist_pub.publish(tracker->twist_msg_);
+      twist_pub->publish(tracker->twist_msg_);
     }
   }
 
   void VRPN_CALLBACK VrpnTrackerRos::handle_accel(void *userData, const vrpn_TRACKERACCCB tracker_accel)
   {
     VrpnTrackerRos *tracker = static_cast<VrpnTrackerRos *>(userData);
-    if (tracker->accel_pub.getTopic().empty())
+
+    ros::Publisher *accel_pub;
+    std::size_t sensor_index(0);
+    ros::NodeHandle nh = tracker->output_nh_;
+
+    if (tracker->process_sensor_id_)
     {
-      tracker->accel_pub = tracker->output_nh_.advertise<geometry_msgs::AccelStamped>("accel", 1);
+      sensor_index = static_cast<std::size_t>(tracker_accel.sensor);
+      nh = ros::NodeHandle(tracker->output_nh_, std::to_string(tracker_accel.sensor));
+    }
+    
+    if (tracker->accel_pubs_.size() <= sensor_index)
+    {
+      tracker->accel_pubs_.resize(sensor_index + 1);
+    }
+    accel_pub = &(tracker->accel_pubs_[sensor_index]);
+
+    if (accel_pub->getTopic().empty())
+    {
+      *accel_pub = nh.advertise<geometry_msgs::TwistStamped>("accel", 1);
     }
 
-    if (tracker->accel_pub.getNumSubscribers() > 0)
+    if (accel_pub->getNumSubscribers() > 0)
     {
       if (tracker->use_server_time_)
       {
@@ -239,7 +301,7 @@ namespace vrpn_client_ros
       tracker->accel_msg_.accel.angular.y = pitch;
       tracker->accel_msg_.accel.angular.z = yaw;
 
-      tracker->accel_pub.publish(tracker->accel_msg_);
+      accel_pub->publish(tracker->accel_msg_);
     }
   }
 
@@ -250,7 +312,7 @@ namespace vrpn_client_ros
     host_ = getHostStringFromParams(private_nh);
 
     ROS_INFO_STREAM("Connecting to VRPN server at " << host_);
-    connection_ = boost::shared_ptr<vrpn_Connection>(vrpn_get_connection_by_name(host_.c_str()));
+    connection_ = std::shared_ptr<vrpn_Connection>(vrpn_get_connection_by_name(host_.c_str()));
     ROS_INFO("Connection established");
 
     double update_frequency;
@@ -272,7 +334,7 @@ namespace vrpn_client_ros
       for (std::vector<std::string>::iterator it = param_tracker_names_.begin();
            it != param_tracker_names_.end(); ++it)
       {
-        trackers_.insert(std::make_pair(*it, boost::make_shared<VrpnTrackerRos>(*it, connection_, output_nh_)));
+        trackers_.insert(std::make_pair(*it, std::make_shared<VrpnTrackerRos>(*it, connection_, output_nh_)));
       }
     }
   }
@@ -315,7 +377,7 @@ namespace vrpn_client_ros
       {
         ROS_INFO_STREAM("Found new sender: " << connection_->sender_name(i));
         trackers_.insert(std::make_pair(connection_->sender_name(i),
-                                        boost::make_shared<VrpnTrackerRos>(connection_->sender_name(i), connection_,
+                                        std::make_shared<VrpnTrackerRos>(connection_->sender_name(i), connection_,
                                                                            output_nh_)));
       }
       i++;
