@@ -2,6 +2,13 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add separate publishers for each sensor id
+* Add Possibility to Append Sensor Id to TF Client Frame
+* Update 'supported devices' link in README
+* Contributors: Karljohan Lundin Palmerius, Paul Bovbel
+
 0.0.2 (2015-07-07)
 ------------------
 * Fix tf header timestamps
