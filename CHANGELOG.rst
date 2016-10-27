@@ -2,6 +2,11 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove -Werror, upstream VRPN has warnings
+* Contributors: Paul Bovbel
+
 0.1.0 (2016-10-26)
 ------------------
 * Add separate publishers for each sensor id
