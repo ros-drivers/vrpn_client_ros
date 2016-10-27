@@ -2,8 +2,8 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2016-10-27)
+------------------
 * Remove -Werror, upstream VRPN has warnings
 * Contributors: Paul Bovbel
 
