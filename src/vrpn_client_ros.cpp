@@ -50,7 +50,12 @@ namespace vrpn_client_ros
   /**
    * check Ros Names as defined here: http://wiki.ros.org/Names
    */
-  bool isInvalidCharInName(const char c)
+  bool isInvalidFirstCharInName(const char c)
+  {
+    return ! ( isalpha(c) || c == '/' || c == '~' );
+  }
+
+  bool isInvalidSubsequentCharInName(const char c)
   {
     return ! ( isalnum(c) || c == '/' || c == '_' );
   }
@@ -61,8 +66,15 @@ namespace vrpn_client_ros
 
     std::string clean_name = tracker_name;
 
-    //clean_name.erase( std::remove( clean_name.begin(), clean_name.end(), ' '), clean_name.end() );  //only remove spaces
-    clean_name.erase( std::remove_if( clean_name.begin(), clean_name.end(), isInvalidCharInName ), clean_name.end() );
+    if (clean_name.size() > 0)
+    {
+      if (isInvalidFirstCharInName(clean_name[0])) 
+      {
+        clean_name = clean_name.substr(1);
+      }
+
+      clean_name.erase( std::remove_if( clean_name.begin() + 1, clean_name.end(), isInvalidSubsequentCharInName ), clean_name.end() );
+    }
 
     init(clean_name, nh, false);
   }
