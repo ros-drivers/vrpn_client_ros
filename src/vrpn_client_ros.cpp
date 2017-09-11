@@ -68,12 +68,14 @@ namespace vrpn_client_ros
 
     if (clean_name.size() > 0)
     {
+      int start_subsequent = 1;
       if (isInvalidFirstCharInName(clean_name[0])) 
       {
         clean_name = clean_name.substr(1);
+        start_subsequent = 0;
       }
 
-      clean_name.erase( std::remove_if( clean_name.begin() + 1, clean_name.end(), isInvalidSubsequentCharInName ), clean_name.end() );
+      clean_name.erase( std::remove_if( clean_name.begin() + start_subsequent, clean_name.end(), isInvalidSubsequentCharInName ), clean_name.end() );
     }
 
     init(clean_name, nh, false);
