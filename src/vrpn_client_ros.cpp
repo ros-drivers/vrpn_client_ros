@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <algorithm>
 
 namespace
 {
@@ -46,10 +47,38 @@ namespace
 namespace vrpn_client_ros
 {
 
+  /**
+   * check Ros Names as defined here: http://wiki.ros.org/Names
+   */
+  bool isInvalidFirstCharInName(const char c)
+  {
+    return ! ( isalpha(c) || c == '/' || c == '~' );
+  }
+
+  bool isInvalidSubsequentCharInName(const char c)
+  {
+    return ! ( isalnum(c) || c == '/' || c == '_' );
+  }
+
   VrpnTrackerRos::VrpnTrackerRos(std::string tracker_name, ConnectionPtr connection, ros::NodeHandle nh)
   {
     tracker_remote_ = std::make_shared<vrpn_Tracker_Remote>(tracker_name.c_str(), connection.get());
-    init(tracker_name, nh, false);
+
+    std::string clean_name = tracker_name;
+
+    if (clean_name.size() > 0)
+    {
+      int start_subsequent = 1;
+      if (isInvalidFirstCharInName(clean_name[0])) 
+      {
+        clean_name = clean_name.substr(1);
+        start_subsequent = 0;
+      }
+
+      clean_name.erase( std::remove_if( clean_name.begin() + start_subsequent, clean_name.end(), isInvalidSubsequentCharInName ), clean_name.end() );
+    }
+
+    init(clean_name, nh, false);
   }
 
   VrpnTrackerRos::VrpnTrackerRos(std::string tracker_name, std::string host, ros::NodeHandle nh)
