@@ -2,8 +2,8 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2017-11-15)
+------------------
 * Merge pull request `#8 <https://github.com/ros-drivers/vrpn_client_ros/issues/8>`_ from cjue/indigo-devel
   fix: motive auto generated names are not valid ROS identifiers
 * fix: don't ignore second char when first one is illegal
