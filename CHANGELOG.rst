@@ -2,6 +2,16 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#8 <https://github.com/ros-drivers/vrpn_client_ros/issues/8>`_ from cjue/indigo-devel
+  fix: motive auto generated names are not valid ROS identifiers
+* fix: don't ignore second char when first one is illegal
+* handlerules for first and subsequent chars in ROS names
+* fix problem with auto generated names from motive: "Rigidy Body n" is
+  not a valid ROS identifier
+* Contributors: Christian Juelg, Paul Bovbel
+
 0.1.1 (2016-10-27)
 ------------------
 * Remove -Werror, upstream VRPN has warnings
