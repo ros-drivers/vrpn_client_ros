@@ -16,7 +16,7 @@ set_directory_properties(PROPERTIES COMPILE_OPTIONS "-std=c++11;-Wall")
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${VRPN_INCLUDE_DIR}
+  SYSTEM ${VRPN_INCLUDE_DIR}
 )
 
 add_library(vrpn_client_ros
@@ -43,16 +43,6 @@ target_link_libraries(vrpn_client_node
   ${catkin_LIBRARIES}
 )
 
-roslaunch_add_file_check(launch)
-
-file(GLOB_RECURSE SOURCE_FILES src *.cpp)
-file(GLOB_RECURSE HEADER_FILES include *.h)
-
-roslint_cpp(
-  ${SOURCE_FILES}
-  ${HEADER_FILES}
-  )
-
 install(TARGETS vrpn_client_ros vrpn_tracker_node vrpn_client_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -66,3 +56,11 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(roslaunch REQUIRED)
+  find_package(roslint REQUIRED)
+  roslint_cpp()
+  roslint_add_test()
+  roslaunch_add_file_check(launch)
+endif()
