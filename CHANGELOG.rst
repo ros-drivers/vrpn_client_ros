@@ -2,6 +2,11 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix warnings; update maintainer email; switch to package format 2
+* Contributors: Paul Bovbel
+
 0.2.0 (2017-11-15)
 ------------------
 * Merge pull request `#8 <https://github.com/ros-drivers/vrpn_client_ros/issues/8>`_ from cjue/indigo-devel
