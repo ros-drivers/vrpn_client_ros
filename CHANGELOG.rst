@@ -2,8 +2,8 @@
 Changelog for package vrpn_client_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2017-11-30)
+------------------
 * Fixup find_package
 * Contributors: Paul Bovbel
 
