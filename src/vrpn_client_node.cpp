@@ -33,10 +33,10 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "vrpn_client_node");
-  ros::NodeHandle nh, private_nh("~");
-  vrpn_client_ros::VrpnClientRos client(nh, private_nh);
-  ros::spin();
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("vrpn_client_node");
+  vrpn_client_ros::VrpnClientRos client(nh, nh);
+  rclcpp::spin(nh);
   return 0;
 }
 
