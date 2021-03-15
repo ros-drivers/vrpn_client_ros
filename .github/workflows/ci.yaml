@@ -1,0 +1,22 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-18.04
+            distro: melodic
+          - os: ubuntu-20.04
+            distro: noetic
+    steps:
+      - uses: ros-tooling/setup-ros@v0.1
+        with:
+          required-ros-distributions: ${{ matrix.distro }}
+      - uses: ros-tooling/action-ros-ci@v0.1
+        with:
+          package-name: vrpn_client_ros
+          target-ros1-distro: ${{ matrix.distro }}
