@@ -13,10 +13,6 @@ jobs:
           - os: ubuntu-20.04
             distro: noetic
     steps:
-      - uses: ros-tooling/setup-ros@v0.1
-        with:
-          required-ros-distributions: ${{ matrix.distro }}
-      - uses: ros-tooling/action-ros-ci@v0.1
-        with:
-          package-name: vrpn_client_ros
-          target-ros1-distro: ${{ matrix.distro }}
+      - uses: actions/checkout@v1
+      - uses: 'ros-industrial/industrial_ci@master'
+        env: {ROS_DISTRO: "${{ matrix.distro }}" }
