@@ -1,66 +1,81 @@
-cmake_minimum_required(VERSION 2.8.3)
+
+cmake_minimum_required(VERSION 3.5)
 project(vrpn_client_ros)
 
-find_package(catkin REQUIRED COMPONENTS geometry_msgs roscpp tf2_ros)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+# find_package(catkin REQUIRED COMPONENTS geometry_msgs tf2_ros)
 find_package(VRPN REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES vrpn_client_ros
-  CATKIN_DEPENDS geometry_msgs tf2_ros
-  DEPENDS VRPN
-)
 
-set_directory_properties(PROPERTIES COMPILE_OPTIONS "-std=c++11;-Wall")
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  SYSTEM ${VRPN_INCLUDE_DIR}
-)
+
+include_directories(include)
 
 add_library(vrpn_client_ros
-  src/vrpn_client_ros.cpp
-)
-target_link_libraries(vrpn_client_ros
-  ${catkin_LIBRARIES}
-  ${VRPN_LIBRARIES}
+            src/vrpn_client_ros.cpp)
+ament_target_dependencies(vrpn_client_ros rclcpp std_msgs geometry_msgs VRPN)
+
+add_executable(vrpn_tracker_node src/vrpn_tracker_node.cpp)
+target_link_libraries(vrpn_tracker_node vrpn_client_ros)
+ament_target_dependencies(vrpn_tracker_node rclcpp std_msgs geometry_msgs VRPN)
+
+add_executable(vrpn_client_node src/vrpn_client_node.cpp)
+target_link_libraries(vrpn_client_node vrpn_client_ros)
+ament_target_dependencies(vrpn_client_node rclcpp std_msgs geometry_msgs VRPN)
+
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
-add_executable(vrpn_tracker_node
-  src/vrpn_tracker_node.cpp)
-add_dependencies(vrpn_tracker_node vrpn_client_ros)
-target_link_libraries(vrpn_tracker_node
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(TARGETS
   vrpn_client_ros
-  ${catkin_LIBRARIES}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+
+install(TARGETS
+  vrpn_tracker_node
+  vrpn_client_node
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-add_executable(vrpn_client_node
-  src/vrpn_client_node.cpp)
-add_dependencies(vrpn_client_node vrpn_client_ros)
-target_link_libraries(vrpn_client_node
-  vrpn_client_ros
-  ${catkin_LIBRARIES}
-)
-
-install(TARGETS vrpn_client_ros vrpn_tracker_node vrpn_client_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-)
-
-install(DIRECTORY launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-if(CATKIN_ENABLE_TESTING)
-  find_package(roslaunch REQUIRED)
-  find_package(roslint REQUIRED)
-  roslint_cpp()
-  roslint_add_test()
-  roslaunch_add_file_check(launch)
-endif()
+ament_package()

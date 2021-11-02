@@ -1,0 +1,8 @@
+vrpn_client_node:
+  ros__parameters:
+    server: 172.19.9.139
+    port: 3883
+    frame_id: "world"
+    use_server_time: false
+    refresh_tracker_frequency: 0.2
+    update_frequency: 60.0
