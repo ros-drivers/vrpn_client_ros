@@ -72,6 +72,7 @@ namespace vrpn_client_ros
 
     std::string clean_name = tracker_name;
 
+    
     if (clean_name.size() > 0)
     {
       int start_subsequent = 1;
@@ -114,13 +115,15 @@ namespace vrpn_client_ros
 
     output_nh_ = nh->create_sub_node(tracker_name);
 
+    // tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(output_nh_);
+
     std::string frame_id;
     nh->get_parameter("frame_id", frame_id);
     nh->get_parameter("use_server_time", use_server_time_);
     nh->get_parameter("broadcast_tf", broadcast_tf_);
 
+    broadcast_tf_ = true;
     pose_msg_.header.frame_id = frame_id;
-    // pose_msg_.header.frame_id = twist_msg_.header.frame_id = accel_msg_.header.frame_id = transform_stamped_.header.frame_id = frame_id;
 
     if (create_mainloop_timer)
     {
@@ -159,6 +162,8 @@ namespace vrpn_client_ros
 
     rclcpp::Node::SharedPtr nh = tracker->output_nh_;
     
+    static tf2_ros::TransformBroadcaster tf_broadcaster(nh);
+    
     if (!tracker->pose_pub_)
     {
       tracker->pose_pub_ = nh->create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1);
@@ -185,41 +190,41 @@ namespace vrpn_client_ros
 
     tracker->pose_pub_->publish(tracker->pose_msg_);
     
+    if (tracker->broadcast_tf_)
+    {
+      
 
-    // if (tracker->broadcast_tf_)
-    // {
-    //   static tf2_ros::TransformBroadcaster tf_broadcaster;
+      if (tracker->use_server_time_)
+      {
+        tracker->transform_stamped_.header.stamp.sec = tracker_pose.msg_time.tv_sec;
+        tracker->transform_stamped_.header.stamp.nanosec = tracker_pose.msg_time.tv_usec * 1000;
+      }
+      else
+      {
+        tracker->transform_stamped_.header.stamp = rclcpp::Clock().now();
+      }
 
-    //   if (tracker->use_server_time_)
-    //   {
-    //     tracker->transform_stamped_.header.stamp.sec = tracker_pose.msg_time.tv_sec;
-    //     tracker->transform_stamped_.header.stamp.nsec = tracker_pose.msg_time.tv_usec * 1000;
-    //   }
-    //   else
-    //   {
-    //     tracker->transform_stamped_.header.stamp = ros::Time::now();
-    //   }
+      // if (tracker->process_sensor_id_)
+      // {
+      //   tracker->transform_stamped_.child_frame_id = tracker->tracker_name + "/" + std::to_string(tracker_pose.sensor);
+      // }
+      // else
+      // {
+      // }
 
-    //   if (tracker->process_sensor_id_)
-    //   {
-    //     tracker->transform_stamped_.child_frame_id = tracker->tracker_name + "/" + std::to_string(tracker_pose.sensor);
-    //   }
-    //   else
-    //   {
-    //     tracker->transform_stamped_.child_frame_id = tracker->tracker_name;
-    //   }
+      tracker->transform_stamped_.child_frame_id = tracker->tracker_name;
+      tracker->transform_stamped_.header.frame_id = tracker->pose_msg_.header.frame_id;
+      tracker->transform_stamped_.transform.translation.x = tracker_pose.pos[0];
+      tracker->transform_stamped_.transform.translation.y = tracker_pose.pos[1];
+      tracker->transform_stamped_.transform.translation.z = tracker_pose.pos[2];
 
-    //   tracker->transform_stamped_.transform.translation.x = tracker_pose.pos[0];
-    //   tracker->transform_stamped_.transform.translation.y = tracker_pose.pos[1];
-    //   tracker->transform_stamped_.transform.translation.z = tracker_pose.pos[2];
+      tracker->transform_stamped_.transform.rotation.x = tracker_pose.quat[0];
+      tracker->transform_stamped_.transform.rotation.y = tracker_pose.quat[1];
+      tracker->transform_stamped_.transform.rotation.z = tracker_pose.quat[2];
+      tracker->transform_stamped_.transform.rotation.w = tracker_pose.quat[3];
 
-    //   tracker->transform_stamped_.transform.rotation.x = tracker_pose.quat[0];
-    //   tracker->transform_stamped_.transform.rotation.y = tracker_pose.quat[1];
-    //   tracker->transform_stamped_.transform.rotation.z = tracker_pose.quat[2];
-    //   tracker->transform_stamped_.transform.rotation.w = tracker_pose.quat[3];
-
-    //   tf_broadcaster.sendTransform(tracker->transform_stamped_);
-    // }
+      tf_broadcaster.sendTransform(tracker->transform_stamped_);
+    }
   }
 
   // void VRPN_CALLBACK VrpnTrackerRos::handle_twist(void *userData, const vrpn_TRACKERVELCB tracker_twist)

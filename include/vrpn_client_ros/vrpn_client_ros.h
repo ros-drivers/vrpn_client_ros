@@ -36,10 +36,11 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/logging.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.h"
 #include "geometry_msgs/msg/accel_stamped.h"
-#include "geometry_msgs/msg/transform_stamped.h"
+#include <geometry_msgs/msg/transform_stamped.h>
 
 #include <vrpn_Tracker.h>
 #include <vrpn_Connection.h>
@@ -80,6 +81,8 @@ namespace vrpn_client_ros
   private:
     TrackerRemotePtr tracker_remote_;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+    // std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
     //std::vector<ros::Publisher> pose_pubs_, twist_pubs_, accel_pubs_;
     rclcpp::Node::SharedPtr output_nh_;
     bool use_server_time_, broadcast_tf_, mainloop_executed_;
@@ -90,7 +93,7 @@ namespace vrpn_client_ros
     geometry_msgs::msg::PoseStamped pose_msg_;
     // geometry_msgs::TwistStamped twist_msg_;
     // geometry_msgs::AccelStamped accel_msg_;
-    // geometry_msgs::TransformStamped transform_stamped_;
+    geometry_msgs::msg::TransformStamped  transform_stamped_;
 
     void init(std::string tracker_name, rclcpp::Node::SharedPtr nh, bool create_mainloop_timer);
 
@@ -125,6 +128,7 @@ namespace vrpn_client_ros
     void updateTrackers();
 
   private:
+
     std::string host_;
     rclcpp::Node::SharedPtr output_nh_;
 
