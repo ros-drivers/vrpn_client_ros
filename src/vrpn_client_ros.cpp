@@ -124,7 +124,6 @@ namespace vrpn_client_ros
     
     previous_message_arrived_ = false;
 
-    broadcast_tf_ = true;
     pose_msg_.header.frame_id = frame_id;
 
     if (create_mainloop_timer)
