@@ -33,9 +33,11 @@
 #include "vrpn_client_ros/vrpn_client_ros.h"
 
 #include "tf2/LinearMath/Quaternion.h"
+#include <tf2/LinearMath/Transform.h>
 #include "tf2/LinearMath/Matrix3x3.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/transform_broadcaster.h"
-
+#include "tf2_kdl/tf2_kdl.hpp"
 #include "rclcpp/logging.hpp"
 
 #include <vector>
@@ -247,6 +249,13 @@ namespace vrpn_client_ros
       auto twist_quat = (quat*tracker->last_quat.inverse())/dt_nsec;
       tracker->twist_msg_.header = tracker->pose_msg_.header;
 
+      // Get inverse transform
+      tf2::Stamped<tf2::Transform> tf;
+      geometry_msgs::msg::TransformStamped tf_msg_inversed;
+
+      tf2::fromMsg(tracker->transform_stamped_, tf);
+      tf_msg_inversed = tf2::toMsg(tf2::Stamped(tf.inverse(), tf.stamp_, tracker->transform_stamped_.child_frame_id));
+
       double roll, pitch, yaw;
       tf2::Matrix3x3 rot_mat(twist_quat);
       rot_mat.getRPY(roll, pitch, yaw);
@@ -255,6 +264,13 @@ namespace vrpn_client_ros
       tracker->twist_msg_.twist.angular.y = pitch;
       tracker->twist_msg_.twist.angular.z = yaw;
       
+      // do KDL conversion of twist message to the base-footprint frame
+      tf2::Stamped<KDL::Twist> kdl_twist_msg_base_, kdl_twist_msg_;
+      tf2::fromMsg(tracker->twist_msg_, kdl_twist_msg_base_);
+
+      tf2::doTransform(kdl_twist_msg_base_, kdl_twist_msg_, tf_msg_inversed);
+
+      tracker->twist_msg_ = tf2::toMsg(kdl_twist_msg_);
 
       tracker->twist_pub_->publish(tracker->twist_msg_);
 

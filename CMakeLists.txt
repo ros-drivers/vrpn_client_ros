@@ -26,6 +26,8 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_kdl REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -43,15 +45,15 @@ include_directories(include)
 
 add_library(vrpn_client_ros
             src/vrpn_client_ros.cpp)
-ament_target_dependencies(vrpn_client_ros rclcpp std_msgs geometry_msgs tf2 tf2_ros VRPN)
+ament_target_dependencies(vrpn_client_ros rclcpp std_msgs geometry_msgs tf2 tf2_ros tf2_kdl tf2_geometry_msgs VRPN)
 
 add_executable(vrpn_tracker_node src/vrpn_tracker_node.cpp)
 target_link_libraries(vrpn_tracker_node vrpn_client_ros)
-ament_target_dependencies(vrpn_tracker_node rclcpp std_msgs geometry_msgs tf2 tf2_ros VRPN)
+ament_target_dependencies(vrpn_tracker_node rclcpp std_msgs geometry_msgs tf2 tf2_ros tf2_kdl tf2_geometry_msgs VRPN)
 
 add_executable(vrpn_client_node src/vrpn_client_node.cpp)
 target_link_libraries(vrpn_client_node vrpn_client_ros)
-ament_target_dependencies(vrpn_client_node rclcpp std_msgs geometry_msgs tf2 tf2_ros VRPN)
+ament_target_dependencies(vrpn_client_node rclcpp std_msgs geometry_msgs tf2 tf2_ros tf2_kdl tf2_geometry_msgs VRPN)
 
 install(DIRECTORY
   launch
