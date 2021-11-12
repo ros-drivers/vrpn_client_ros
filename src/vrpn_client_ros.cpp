@@ -179,7 +179,7 @@ namespace vrpn_client_ros
     }
     else
     {
-      tracker->pose_msg_.header.stamp = nh->now();
+      tracker->pose_msg_.header.stamp = rclcpp::Clock().now();
     }
 
     tracker->pose_msg_.pose.position.x = tracker_pose.pos[0];
@@ -232,13 +232,14 @@ namespace vrpn_client_ros
         tracker->twist_pub_ = nh->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 1);
       }
 
+      
+      double dt_nsec = (tracker->pose_msg_.header.stamp.nanosec*1.0e-9 - tracker->previous_pose_msg_.header.stamp.nanosec*1.0e-9);
+      double dt_sec = (tracker->pose_msg_.header.stamp.sec - tracker->previous_pose_msg_.header.stamp.sec) + dt_nsec;
 
-      int64_t dt_nsec = (tracker->pose_msg_.header.stamp.sec*1e-9+tracker->pose_msg_.header.stamp.nanosec) - 
-                    (tracker->previous_pose_msg_.header.stamp.sec*1e-9+tracker->previous_pose_msg_.header.stamp.nanosec);
+      tracker->twist_msg_.twist.linear.x = (tracker->pose_msg_.pose.position.x - tracker->previous_pose_msg_.pose.position.x)/dt_sec;
+      tracker->twist_msg_.twist.linear.y = (tracker->pose_msg_.pose.position.y - tracker->previous_pose_msg_.pose.position.y)/dt_sec;
+      tracker->twist_msg_.twist.linear.z = (tracker->pose_msg_.pose.position.z - tracker->previous_pose_msg_.pose.position.z)/dt_sec;
 
-      tracker->twist_msg_.twist.linear.x = (tracker->pose_msg_.pose.position.x - tracker->previous_pose_msg_.pose.position.x)*1e9/dt_nsec;
-      tracker->twist_msg_.twist.linear.y = (tracker->pose_msg_.pose.position.y - tracker->previous_pose_msg_.pose.position.y)*1e9/dt_nsec;
-      tracker->twist_msg_.twist.linear.z = (tracker->pose_msg_.pose.position.z - tracker->previous_pose_msg_.pose.position.z)*1e9/dt_nsec;
 
       tf2::Quaternion quat( tracker->pose_msg_.pose.orientation.x, 
                             tracker->pose_msg_.pose.orientation.y, 
