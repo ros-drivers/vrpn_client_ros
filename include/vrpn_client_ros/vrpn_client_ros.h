@@ -38,7 +38,12 @@
 #include "rclcpp/logging.hpp"
 
 #include "tf2/LinearMath/Quaternion.h"
+#include <tf2/LinearMath/Transform.h>
+#include "tf2/LinearMath/Matrix3x3.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/transform_broadcaster.h"
+#include "tf2_kdl/tf2_kdl.hpp"
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/accel_stamped.hpp"
@@ -46,10 +51,14 @@
 
 #include <vrpn_Tracker.h>
 #include <vrpn_Connection.h>
+
 #include <map>
 #include <string>
 #include <unordered_map>
-
+#include <vector>
+#include <unordered_set>
+#include <algorithm>
+#include <chrono>
 namespace vrpn_client_ros
 {
 
@@ -88,16 +97,14 @@ namespace vrpn_client_ros
 
     rclcpp::Node::SharedPtr output_nh_;
 
-    bool use_server_time_, broadcast_tf_, mainloop_executed_, calculate_twist_and_accel_,previous_message_arrived_;
+    bool use_server_time_, broadcast_tf_, mainloop_executed_;
     std::string tracker_name;
 
     rclcpp::TimerBase::SharedPtr mainloop_timer;
     tf2::Quaternion last_quat;
 
     geometry_msgs::msg::PoseStamped pose_msg_;
-    geometry_msgs::msg::PoseStamped previous_pose_msg_;
     geometry_msgs::msg::TwistStamped twist_msg_;
-    geometry_msgs::msg::TwistStamped previous_twist_msg_;
     geometry_msgs::msg::AccelStamped accel_msg_;
     geometry_msgs::msg::TransformStamped  transform_stamped_;
 

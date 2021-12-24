@@ -39,8 +39,6 @@ int main(int argc, char **argv)
   auto nh = rclcpp::Node::make_shared("vrpn_tracker_node");
   auto private_nh = rclcpp::Node::make_shared("vrpn_tracker_node_private");
 
-  //rclcpp::Node::SharedPtr nh, private_nh("~");
-
   std::string tracker_name = "Test tracker";
   if (!private_nh->get_parameter("tracker_name", tracker_name))
   {

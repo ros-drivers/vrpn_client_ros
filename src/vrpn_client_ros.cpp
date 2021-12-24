@@ -32,18 +32,6 @@
 
 #include "vrpn_client_ros/vrpn_client_ros.h"
 
-#include "tf2/LinearMath/Quaternion.h"
-#include <tf2/LinearMath/Transform.h>
-#include "tf2/LinearMath/Matrix3x3.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2_kdl/tf2_kdl.hpp"
-#include "rclcpp/logging.hpp"
-
-#include <vector>
-#include <unordered_set>
-#include <algorithm>
-#include <chrono>
 
 namespace
 {
@@ -122,10 +110,7 @@ namespace vrpn_client_ros
     nh->get_parameter("frame_id", frame_id);
     nh->get_parameter("use_server_time", use_server_time_);
     nh->get_parameter("broadcast_tf", broadcast_tf_);
-    nh->get_parameter("calculate_twist_and_accel", calculate_twist_and_accel_);
-    
-    previous_message_arrived_ = false;
-
+ 
     pose_msg_.header.frame_id = frame_id;
 
     if (create_mainloop_timer)
@@ -224,81 +209,6 @@ namespace vrpn_client_ros
       tf_broadcaster.sendTransform(tracker->transform_stamped_);
     }
 
-
-    if (tracker->calculate_twist_and_accel_ && tracker->previous_message_arrived_)
-    {
-      if (!tracker->twist_pub_)
-      {
-        tracker->twist_pub_ = nh->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 1);
-      }
-
-      
-      double dt_nsec = (tracker->pose_msg_.header.stamp.nanosec*1.0e-9 - tracker->previous_pose_msg_.header.stamp.nanosec*1.0e-9);
-      double dt_sec = (tracker->pose_msg_.header.stamp.sec - tracker->previous_pose_msg_.header.stamp.sec) + dt_nsec;
-
-      tracker->twist_msg_.twist.linear.x = (tracker->pose_msg_.pose.position.x - tracker->previous_pose_msg_.pose.position.x)/dt_sec;
-      tracker->twist_msg_.twist.linear.y = (tracker->pose_msg_.pose.position.y - tracker->previous_pose_msg_.pose.position.y)/dt_sec;
-      tracker->twist_msg_.twist.linear.z = (tracker->pose_msg_.pose.position.z - tracker->previous_pose_msg_.pose.position.z)/dt_sec;
-
-
-      tf2::Quaternion quat( tracker->pose_msg_.pose.orientation.x, 
-                            tracker->pose_msg_.pose.orientation.y, 
-                            tracker->pose_msg_.pose.orientation.z, 
-                            tracker->pose_msg_.pose.orientation.w);
-
-
-      auto twist_quat = (quat*tracker->last_quat.inverse())/dt_nsec;
-      tracker->twist_msg_.header = tracker->pose_msg_.header;
-
-      // Get inverse transform
-      tf2::Stamped<tf2::Transform> tf;
-      geometry_msgs::msg::TransformStamped tf_msg_inversed;
-
-      tf2::fromMsg(tracker->transform_stamped_, tf);
-      tf_msg_inversed = tf2::toMsg(tf2::Stamped(tf.inverse(), tf.stamp_, tracker->transform_stamped_.child_frame_id));
-
-      double roll, pitch, yaw;
-      tf2::Matrix3x3 rot_mat(twist_quat);
-      rot_mat.getRPY(roll, pitch, yaw);
-
-      tracker->twist_msg_.twist.angular.x = roll;
-      tracker->twist_msg_.twist.angular.y = pitch;
-      tracker->twist_msg_.twist.angular.z = yaw;
-      
-      // do KDL conversion of twist message to the base-footprint frame
-      tf2::Stamped<KDL::Twist> kdl_twist_msg_base_, kdl_twist_msg_;
-      tf2::fromMsg(tracker->twist_msg_, kdl_twist_msg_base_);
-
-      tf2::doTransform(kdl_twist_msg_base_, kdl_twist_msg_, tf_msg_inversed);
-
-      tracker->twist_msg_ = tf2::toMsg(kdl_twist_msg_);
-
-      tracker->twist_pub_->publish(tracker->twist_msg_);
-
-      if (!tracker->accel_pub_)
-      {
-        tracker->accel_pub_ = nh->create_publisher<geometry_msgs::msg::AccelStamped>("accel", 1);
-      }
-
-      tracker->accel_msg_.accel.linear.x = (tracker->twist_msg_.twist.linear.x - tracker->previous_twist_msg_.twist.linear.x)*1e9/dt_nsec;
-      tracker->accel_msg_.accel.linear.y = (tracker->twist_msg_.twist.linear.y - tracker->previous_twist_msg_.twist.linear.y)*1e9/dt_nsec;
-      tracker->accel_msg_.accel.linear.z = (tracker->twist_msg_.twist.linear.z - tracker->previous_twist_msg_.twist.linear.z)*1e9/dt_nsec;
-
-      tracker->accel_msg_.accel.angular.x = (tracker->twist_msg_.twist.angular.x - tracker->previous_twist_msg_.twist.angular.x)*1e9/dt_nsec;
-      tracker->accel_msg_.accel.angular.y = (tracker->twist_msg_.twist.angular.y - tracker->previous_twist_msg_.twist.angular.y)*1e9/dt_nsec;
-      tracker->accel_msg_.accel.angular.z = (tracker->twist_msg_.twist.angular.z - tracker->previous_twist_msg_.twist.angular.z)*1e9/dt_nsec;
-
-
-      tracker->accel_msg_.header = tracker->pose_msg_.header;
-
-      tracker->accel_pub_->publish(tracker->accel_msg_);
-
-      tracker->last_quat = quat;
-    }
-
-    tracker->previous_message_arrived_ = true;
-    tracker->previous_pose_msg_ = tracker->pose_msg_;
-    tracker->previous_twist_msg_ = tracker->twist_msg_;
   }
 
   void VRPN_CALLBACK VrpnTrackerRos::handle_twist(void *userData, const vrpn_TRACKERVELCB tracker_twist)
@@ -394,7 +304,6 @@ namespace vrpn_client_ros
     nh->declare_parameter("use_server_time", false);
     nh->declare_parameter("broadcast_tf", true);
     nh->declare_parameter("refresh_tracker_frequency", 5.0);
-    nh->declare_parameter("calculate_twist_and_accel", true);
 
     std::vector<std::string> param_tracker_names;
     nh->declare_parameter("trackers", param_tracker_names);
