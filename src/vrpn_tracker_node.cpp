@@ -35,18 +35,19 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "vrpn_tracker_node");
-  ros::NodeHandle nh, private_nh("~");
+  rclcpp::init(argc, argv);
+  auto nh = rclcpp::Node::make_shared("vrpn_tracker_node");
+  auto private_nh = rclcpp::Node::make_shared("vrpn_tracker_node_private");
 
-  std::string tracker_name;
-  if (!private_nh.getParam("tracker_name", tracker_name))
+  std::string tracker_name = "Test tracker";
+  if (!private_nh->get_parameter("tracker_name", tracker_name))
   {
-    ROS_FATAL_STREAM("Must provide paramter tracker_name for node " << private_nh.getNamespace());
+    RCLCPP_FATAL_STREAM(nh->get_logger(), "Must provide paramter tracker_name for node " << private_nh->get_namespace());
   }
 
   std::string host = vrpn_client_ros::VrpnClientRos::getHostStringFromParams(private_nh);
   vrpn_client_ros::VrpnTrackerRos tracker(tracker_name, host, nh);
 
-  ros::spin();
+  rclcpp::spin(nh);
   return 0;
 }
